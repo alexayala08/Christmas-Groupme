@@ -5,76 +5,94 @@ from collections import Counter
 
 #global variables because I'm lazy and didn't feel like thinking
 #of a more elegant solution
-total_messages = 0
-liked_messages = 0
-likes_received = 0
-biggest_fans = {}
-all_words = {}
-most_liked_message_num = 0
-most_liked_message = []
-#poi = person of interest
-poi = ""
-temp = 0
 
 
 
-def check_group(group, person):
-    global total_messages
-    global liked_messages
-    global likes_received
-    global all_words
-    global biggest_fans
-    global most_liked_message_num
-    global most_liked_message
+def check_groups(person):
+    total_messages = 0
+    liked_messages = 0
+    likes_received = 0
+    biggest_fans = {}
+    all_words = {}
+    most_liked_message_num = 0
+    most_liked_message = []
+    highest_lpm = 0
+    highest_lpm_group = ""
+    common_words = "THE BE TO OF AND A IN THAT HAVE I IT FOR NOT ON WITH HE AS \
+            YOU DO AT THIS BUT HIS BY FROM THEY WE SAY HER SHE OR AN WILL MY ONE ALL \
+            WOULD THERE THEIR WHAT SO UP OUT IF ABOUT WHO GET WHICH GO ME WHEN MAKE \
+            CAN LIKE TIME NO JUST HIM KNOW TAKE PEOPLE INTO YEAR YOUR GOOD SOME COULD \
+            THEM SEE OTHER THAN THEN NOW LOOK ONLY COME ITS OVER THINK ALSO BACK AFTER \
+            USE TWO HOW OUR WORK FIRST WELL WAY EVEN NEW WANT BECAUSE ANY THESE GIVE \
+            DAY MOST US IS ARE I'M WAS DON'T I'LL I’M DON’T I’LL IT'S IT’S THAT'S \
+            THAT’S WE'RE WE’RE YOU'RE YOU’RE"
+    common = common_words.split()
+    
+    for folder in os.listdir():
+        try:
+            int(folder)
+            #opens groupchat file with all of the groups messages
+            path = os.getcwd() + "\\"+folder
+            with open(path+'\\message.json', encoding="utf8") as f:
+                data = json.load(f)
 
-    #common words and contractions that are ignored when
-    #looking for unique words
-    temp_words = "THE BE TO OF AND A IN THAT HAVE I IT FOR NOT ON WITH HE AS \
-    YOU DO AT THIS BUT HIS BY FROM THEY WE SAY HER SHE OR AN WILL MY ONE ALL \
-    WOULD THERE THEIR WHAT SO UP OUT IF ABOUT WHO GET WHICH GO ME WHEN MAKE \
-    CAN LIKE TIME NO JUST HIM KNOW TAKE PEOPLE INTO YEAR YOUR GOOD SOME COULD \
-    THEM SEE OTHER THAN THEN NOW LOOK ONLY COME ITS OVER THINK ALSO BACK AFTER \
-    USE TWO HOW OUR WORK FIRST WELL WAY EVEN NEW WANT BECAUSE ANY THESE GIVE \
-    DAY MOST US IS ARE I'M WAS DON'T I'LL I’M DON’T I’LL IT'S IT’S THAT'S \
-    THAT’S WE'RE WE’RE YOU'RE YOU’RE"
-    common = temp_words.split()
+            current_messages = 0
+            current_likes = 0
+            
+            #Reads through all message to collect data on poi
+            for message in range(len(data)):
 
-    #opens groupchat file with all of the groups messages
-    path = os.getcwd() + "\\"+group
-    with open(path+'\\message.json', encoding="utf8") as f:
-        data = json.load(f)
+                #Tracks which messages from poi have been liked and most liked
+                if(data[message]["user_id"]) == person:
+                    total_messages += 1
+                    current_messages += 1
+                    if(len(data[message]["favorited_by"]) > 0):
+                        liked_messages += 1
+                        if (len(data[message]["favorited_by"]) > most_liked_message_num):
+                            most_liked_message_num = len(data[message]["favorited_by"])
+                            most_liked_message = data[message]["text"]
+                    likes_received += len(data[message]["favorited_by"])
+                    current_likes += len(data[message]["favorited_by"])
 
-    #Reads through all message to collect data on poi
-    for message in range(len(data)):
+                    #Tracks who likes poi's messages the most
+                    for j in data[message]["favorited_by"]:
+                        if j in biggest_fans:
+                            biggest_fans[j] = biggest_fans[j] + 1
+                        else:
+                            biggest_fans[j] = 1
 
-        #Tracks which messages from poi have been liked and most liked
-        if(data[message]["user_id"]) == person:
-            total_messages += 1
-            if(len(data[message]["favorited_by"]) > 0):
-                liked_messages += 1
-                if (len(data[message]["favorited_by"]) > most_liked_message_num):
-                    most_liked_message_num = len(data[message]["favorited_by"])
-                    most_liked_message = data[message]["text"]
-            likes_received += len(data[message]["favorited_by"])
+                    #Checks every word poi has ever sent
+                    if data[message]["text"] != None:
+                        sentence = data[message]["text"].split()
+                        for word in sentence:
+                            if word.upper() in common:
+                                continue
+                            elif word.upper() in all_words:
+                                all_words[word.upper()] = all_words[word.upper()] + 1
+                            else:
+                                all_words[word.upper()] = 1
+            with open(path+'\\conversation.json', encoding="utf8") as f:
+                data = json.load(f)
+            try:
+                if ((current_likes/current_messages) > highest_lpm):
+                    highest_lpm = current_likes/current_messages
+                    highest_lpm_group = data["name"]
+            except:
+                pass
+            
+        except:
+            continue
+    common_words = {}
+    k = Counter(all_words)
+    high = k.most_common(10)
 
-            #Tracks who likes poi's messages the most
-            for j in data[message]["favorited_by"]:
-                if j in biggest_fans:
-                    biggest_fans[j] = biggest_fans[j] + 1
-                else:
-                    biggest_fans[j] = 1
+    f = Counter(biggest_fans)
+    fans = f.most_common(10)
 
-            #Checks every word poi has ever sent
-            if data[message]["text"] != None:
-                sentence = data[message]["text"].split()
-                for word in sentence:
-                    if word.upper() in common:
-                        continue
-                    elif word.upper() in all_words:
-                        all_words[word.upper()] = all_words[word.upper()] + 1
-                    else:
-                        all_words[word.upper()] = 1
+    return total_messages, liked_messages, likes_received, high, fans, \
+           most_liked_message_num, most_liked_message, highest_lpm, highest_lpm_group
 
+    
 #goes through each groupchat until poi's name is found
 #returns poi's unique ID
 def find_person_id(name):
@@ -100,20 +118,11 @@ def find_person_name(uid):
         for people in range(len(data["members"])):
             if data["members"][people]["user_id"] == uid:
                 return data["members"][people]["name"]
-
-
-
-
-#loop to check all group chats
-def check_all_groups(person):
-    for folder in os.listdir():
-        if folder == 'Christmas.py':
-            break
-        check_group(folder, person)
+        
 
 #Asks user who they want information on
 def take_input():
-    global poi
+    #global poi
 
     yourself = input("Do you want to learn about yourself? (y/n): ")   
     while yourself.upper() != 'Y' and yourself.upper() != 'N':
@@ -123,36 +132,29 @@ def take_input():
         profile = os.getcwd() + "\\profile\\profile.json"
         with open(profile, encoding="utf8") as f:
             data = json.load(f)
-        person = (data['id'])
-        poi = (data["name"])
-        poi = poi.split()
-        return person
+        person_id = (data['id'])
+        name = (data["name"])
+        name = name.split()
+        return person_id, name
 
     elif(yourself.upper() == 'N'):
-        temp = input("Who would you like to learn about? (Case Sensitive): ")
-        person = find_person_id(temp)
-        poi = temp.split()
+        name = input("Who would you like to learn about? (Full Name - Case Sensitive): ")
+        person_id = find_person_id(name)
+        name = name.split()
         while person == None:
             print("Sorry it seems we could not find that person")
-            temp = input("Who would you like to learn about? (Case Sensitive): ")
-            person = find_person_id(temp)
-            poi = temp
-        return person
+            name = input("Who would you like to learn about? (Fulle Name - Case Sensitive): ")
+            person_id = find_person_id(name)
+            name = name.split
+        return person_id, name
 
 #Prints out the collected data
-def statistics():
-    global total_messages
-    global liked_messages
-    global likes_received
-    global all_words
-    global biggest_fans
-    global most_liked_message_num
-    global most_liked_message
-
+def statistics(name, total_messages, liked_messages, likes_received, high, \
+               fans, most_liked_message_num, most_liked_message, highest_lpm, highest_lpm_group):
     print()
-    print("Total number of messages", poi[0], "has sent:", total_messages)
-    print("Total number of likes", poi[0], "has received:",likes_received)
-    print("Average likes per message for", poi[0], ":", round(likes_received/total_messages, 3))
+    print("Total number of messages", name[0], "has sent:", total_messages)
+    print("Total number of likes", name[0], "has received:",likes_received)
+    print("Average likes per message for", name[0], ":", round(likes_received/total_messages, 3))
 
     print() 
     print("Messages that received at least one like:", liked_messages)
@@ -167,51 +169,35 @@ to receive likes")
     print(most_liked_message_num)
     print(most_liked_message)
 
-    #sorts biggest fans and returns top 10
-    f = Counter(biggest_fans)
-    fans = f.most_common(10)
     print()
-    print("The people that have given", poi[0], "the most likes: ", end = "")
+    print(highest_lpm)
+    print(highest_lpm_group)
+
+    print()
+    print("The people that have given", name[0], "the most likes: ", end = "")
     for f in fans:
         print(find_person_name(f[0]), f[1] , end = ", ")
     print()
 
     #sorts words by how often they are used and returns top 10
-    common_words = {}
-    k = Counter(all_words)
-    high = k.most_common(10)
     print()
-    print("Some unique words", poi[0], "has said often: ", end ="")
+    print("Some unique words", name[0], "has said often: ", end ="")
     for i in high:
         print(i[0], i[1] , end = ", ")
     print()
 
 def final():
-    global total_messages
-    global liked_messages
-    global likes_received
-    global biggest_fans
-    global all_words
-    
-    person = take_input()
-    check_all_groups(person)
-    statistics()
-    print()
-    again = input("Do you want to learn about someone else? (y/n): ")
+    again = 'Y'
     while again.upper() == 'Y':
-        total_messages = 0
-        liked_messages = 0
-        likes_received = 0
-        biggest_fans = {}
-        all_words = {}
-        most_liked_message_num = 0
-        most_liked_message = []
-        
-        person = take_input()
-        check_all_groups(person)
-        statistics()
+        person_id, name = take_input()
+        total_messages, liked_messages, likes_received, high, \
+               fans, most_liked_message_num, most_liked_message, highest_lpm, highest_lpm_group = check_groups(person_id)
+
+        statistics(name[0], total_messages, liked_messages, likes_received, high, \
+               fans, most_liked_message_num, most_liked_message, highest_lpm, highest_lpm_group)
         print()
         again = input("Do you want to learn about someone else? (y/n): ")
+    print()
 
 final()
 
