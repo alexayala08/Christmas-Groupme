@@ -2,6 +2,8 @@ import json
 import os
 import operator
 import sys
+import matplotlib.pyplot as plt
+import numpy as np
 from collections import Counter
 
 def check_groups(person):
@@ -23,7 +25,7 @@ def check_groups(person):
             THAT’S WE'RE WE’RE YOU'RE YOU’RE"
     common = common_words.split()
     mentions = {}
-    
+
     for folder in os.listdir():
         try:
             int(folder)
@@ -34,7 +36,7 @@ def check_groups(person):
 
             current_messages = 0
             current_likes = 0
-            
+
             #Reads through all message to collect data on poi
             for message in range(len(data)):
 
@@ -42,7 +44,7 @@ def check_groups(person):
                 if(data[message]["user_id"]) == person:
                     total_messages += 1
                     current_messages += 1
-                    
+
                     #checks messages that have been liked
                     if(len(data[message]["favorited_by"]) > 0):
                         liked_messages += 1
@@ -52,7 +54,7 @@ def check_groups(person):
                         if (len(data[message]["favorited_by"]) > most_liked_message_num):
                             most_liked_message_num = len(data[message]["favorited_by"])
                             most_liked_message = data[message]["text"]
-                            
+
                     if(len(data[message]["attachments"]) > 0):
                         for i in range(len(data[message]["attachments"])):
                             if(data[message]["attachments"][i]["type"] == "mentions"):
@@ -61,8 +63,8 @@ def check_groups(person):
                                         mentions[k] = mentions[k] + 1
                                     else:
                                         mentions[k] = 1
-                    
-                    
+
+
                     #Tracks who likes poi's messages the most
                     for j in data[message]["favorited_by"]:
                         if j in biggest_fans:
@@ -80,7 +82,7 @@ def check_groups(person):
                                 all_words[word.upper()] = all_words[word.upper()] + 1
                             else:
                                 all_words[word.upper()] = 1
-                                
+
             with open(path+'\\conversation.json', encoding="utf8") as f:
                 data = json.load(f)
             if (current_messages > 0):
@@ -103,7 +105,7 @@ def check_groups(person):
     return total_messages, liked_messages, likes_received, high, fans, \
            most_liked_message_num, most_liked_message, highest_lpm, most_mentioned
 
-    
+
 #goes through each groupchat until poi's name is found
 #returns poi's unique ID
 def find_person_id(name):
@@ -116,7 +118,7 @@ def find_person_id(name):
         for people in range(len(data["members"])):
             if data["members"][people]["name"] == name:
                 return data["members"][people]["user_id"]
-            
+
 
 #goes through each groupchat until poi's unique ID is found
 #returns poi's Name
@@ -136,7 +138,7 @@ def find_person_name(uid):
 def take_input():
     #global poi
 
-    yourself = input("Do you want to learn about yourself? (y/n): ")   
+    yourself = input("Do you want to learn about yourself? (y/n): ")
     while yourself.upper() != 'Y' and yourself.upper() != 'N':
         yourself = input("Sorry I didn't understand that. Do you want to learn about yourself? (y/n): ")
 
@@ -168,7 +170,7 @@ def statistics(name, total_messages, liked_messages, likes_received, high, \
     print("Total number of likes", name, "has received:",likes_received)
     print("Average likes per message: ", round(likes_received/total_messages, 3))
 
-    print() 
+    print()
     print("Messages that received at least one like:", liked_messages)
     print("Improved LPM using messages with at least one like:", round(likes_received/liked_messages,3))
 
@@ -178,12 +180,15 @@ def statistics(name, total_messages, liked_messages, likes_received, high, \
 to receive likes")
 
     print()
-    print(name, "overall most liked message:", most_liked_message)
+    print(name, "overall most liked message: \n","'"+most_liked_message+"'")
     print("Likes received", most_liked_message_num)
 
     print()
     print("The groups where", name, "has the highest LPM:", highest_lpm)
-
+    print('')
+    print(highest_lpm)
+    print('')
+    
     print()
     print("The people", name, "has mentioned the most: ", end = "")
     for m in most_mentioned:
@@ -214,6 +219,4 @@ def final():
         print()
         again = input("Do you want to learn about someone else? (y/n): ")
     print()
-
 final()
-
