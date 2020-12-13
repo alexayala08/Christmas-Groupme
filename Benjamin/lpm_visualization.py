@@ -188,7 +188,8 @@ to receive likes")
     print('')
     print(highest_lpm)
     print('')
-
+    
+    #Print a hisogram showing highest lpm groups
     word, frequency = zip(*highest_lpm)
     indices = np.arange(len(highest_lpm))
     plt.bar(indices, frequency, color=['red','blue','yellow','orange','green'])
