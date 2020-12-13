@@ -180,7 +180,7 @@ def statistics(name, total_messages, liked_messages, likes_received, high, \
 to receive likes")
 
     print()
-    print(name, "overall most liked message:", most_liked_message)
+    print(name, "overall most liked message: \n","'"+most_liked_message+"'")
     print("Likes received", most_liked_message_num)
 
     print()
