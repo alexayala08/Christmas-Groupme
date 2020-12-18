@@ -157,7 +157,7 @@ def take_input():
         name = name.split()
         while name == None:
             print("Sorry it seems we could not find that person")
-            name = input("Who would you like to learn about? (Fulle Name - Case Sensitive): ")
+            name = input("Who would you like to learn about? (Full Name - Case Sensitive): ")
             person_id = find_person_id(name)
             name = name.split
         return person_id, name
