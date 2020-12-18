@@ -109,29 +109,37 @@ def check_groups(person):
 #goes through each groupchat until poi's name is found
 #returns poi's unique ID
 def find_person_id(name):
-    for folder in os.listdir():
-        if folder == 'Christmas.py':
-            break
-        path = os.getcwd() + "\\"+folder
-        with open(path+'\\conversation.json', encoding="utf8") as f:
-            data = json.load(f)
-        for people in range(len(data["members"])):
-            if data["members"][people]["name"] == name:
-                return data["members"][people]["user_id"]
+        for folder in os.listdir():
+            try:
+                int(folder)
+                if folder == 'Christmas.py':
+                    break
+                path = os.getcwd() + "\\"+folder
+                with open(path+'\\conversation.json', encoding="utf8") as f:
+                    data = json.load(f)
+                for people in range(len(data["members"])):
+                    if data["members"][people]["name"] == name:
+                        return data["members"][people]["user_id"]
+            except(ValueError):
+                continue
 
 
 #goes through each groupchat until poi's unique ID is found
 #returns poi's Name
 def find_person_name(uid):
     for folder in os.listdir():
-        if folder == 'Christmas.py':
-            break
-        path = os.getcwd() + "\\"+folder
-        with open(path+'\\conversation.json', encoding="utf8") as f:
-            data = json.load(f)
-        for people in range(len(data["members"])):
-            if data["members"][people]["user_id"] == uid:
-                return data["members"][people]["name"]
+        try:
+            int(folder)
+            if folder == 'Christmas.py':
+                break
+            path = os.getcwd() + "\\"+folder
+            with open(path+'\\conversation.json', encoding="utf8") as f:
+                data = json.load(f)
+            for people in range(len(data["members"])):
+                if data["members"][people]["user_id"] == uid:
+                    return data["members"][people]["name"]
+        except(ValueError):
+            continue
 
 
 #Asks user who they want information on
@@ -185,8 +193,6 @@ to receive likes")
 
     print()
     print("The groups where", name, "has the highest LPM:", highest_lpm)
-    print('')
-    print(highest_lpm)
     print('')
     
     print()
